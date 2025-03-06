@@ -1,0 +1,39 @@
+version: "3.3"
+services:
+  db_mongo:
+    build: ./db
+    restart: always
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: dev_password
+      MONGO_INITDB_DATABASE: hypertube
+  api:
+    build: ./api
+    depends_on:
+      - db_mongo
+    environment:
+      MONGO_URL: mongodb://db_mongo/hypertube
+      SERVER_PORT: 3000
+      API_URL: http://localhost:3000
+      CLIENT_URL: http://localhost:4242
+      API_FORTYTWO_APP_ID: 42_ID
+      API_FORTYTWO_APP_SECRET: 42_SECRET
+      API_GITHUB_CLIENT_ID: GITHUB_ID
+      API_GITHUB_CLIENT_SECRET: GITHUB_SECRET
+      NODE_OPTIONS: --openssl-legacy-provider
+    ports:
+      - "3000:3000"
+    command: "npm start"
+  web_client:
+    build: ./web
+    depends_on:
+      - api
+    environment:
+      PORT: 4242
+      INTERNAL_CLIENT_API: http://api:3000
+      NODE_OPTIONS: --openssl-legacy-provider
+    ports:
+      - "4242:4242"
+    command: "npm start"
